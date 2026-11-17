@@ -15,17 +15,61 @@
 
 Python · FastAPI · Gradio · LangChain Classic · FAISS · BM25/jieba · BGE · SQLAlchemy/SQLite。
 
-```text
-Gradio 界面 ── HTTP ── FastAPI
-                         ├─ /chat/agent_chat
-                         │    └─ ReAct Agent + 前端回传历史 + 附件上下文
-                         │         ├─ 单库/跨库检索、库清单、文件清单
-                         │         └─ 搜索、网页正文、计算器、天气
-                         └─ /knowledgebase/*
-                              ├─ 解析 → 递归切分 → 本地 BGE → FAISS 持久化
-                              └─ FAISS + BM25 → 等权 RRF 融合 → 去重
-                                                  → 在线重排 → 来源/正文/分数
-数据：SQLite 元数据 + data/ 原始文件 + knowledgebases/ 向量索引
+```mermaid
+flowchart TB
+    UI["Gradio 界面"] -->|HTTP| API["FastAPI"]
+
+    subgraph CHAT["智能体问答 · /chat/agent_chat"]
+        direction TB
+        CTX["前端回传历史 + 附件上下文"] --> AGENT["ReAct Agent"]
+        AGENT --> KBTOOLS["知识库工具<br/>单库 / 跨库检索 · 库清单 · 文件清单"]
+        AGENT --> WEBTOOLS["外部与通用工具<br/>联网搜索 · 网页正文 · 计算器 · 天气"]
+    end
+
+    subgraph KB["知识库服务 · /knowledgebase/*"]
+        direction TB
+        MANAGE["知识库与文件管理"]
+        PARSE["文档解析"] --> SPLIT["递归切分"] --> BGE["本地 BGE 向量化"]
+        SEARCH["检索请求"] --> DENSE["FAISS 向量召回"]
+        SEARCH --> SPARSE["BM25 关键词召回"]
+        DENSE --> RRF["等权 RRF 融合"]
+        SPARSE --> RRF
+        RRF --> DEDUP["候选去重"] --> RERANK["在线 Reranker 重排"]
+        RERANK --> RESULT["来源 / 正文 / 相关性分数"]
+        RERANK -.->|调用失败| FALLBACK["按融合顺序返回 · 分数为空"]
+        FALLBACK --> RESULT
+    end
+
+    subgraph DATA["本地数据存储"]
+        DB[("SQLite<br/>知识库元数据")]
+        FILES[("data/<br/>原始文件")]
+        INDEX[("knowledgebases/<br/>FAISS 向量索引与 docstore")]
+    end
+
+    API --> AGENT
+    API --> MANAGE
+    API --> PARSE
+    API --> SEARCH
+    KBTOOLS -->|HTTP 调用| MANAGE
+    KBTOOLS -->|HTTP 检索| SEARCH
+    RESULT -->|工具 Observation| AGENT
+    AGENT -->|最终答案流式响应| UI
+    MANAGE --- DB
+    MANAGE --- FILES
+    MANAGE --- INDEX
+    PARSE -->|保存上传文件| FILES
+    BGE -->|持久化| INDEX
+    INDEX -.->|加载向量索引| DENSE
+    INDEX -.->|读取文档并构建 BM25| SPARSE
+
+    classDef entry fill:#eff6ff,stroke:#2563eb,color:#172554
+    classDef agent fill:#f5f3ff,stroke:#7c3aed,color:#2e1065
+    classDef retrieval fill:#ecfdf5,stroke:#059669,color:#064e3b
+    classDef storage fill:#fff7ed,stroke:#ea580c,color:#7c2d12
+    class UI,API entry
+    class CTX,AGENT,KBTOOLS,WEBTOOLS agent
+    class MANAGE,PARSE,SPLIT,BGE,SEARCH,DENSE,SPARSE,RRF,DEDUP,RERANK,RESULT,FALLBACK retrieval
+    class DB,FILES,INDEX storage
 ```
 
 ### 检索与存储细节

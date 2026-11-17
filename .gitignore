@@ -1,0 +1,94 @@
+# ============================================================
+#  .gitignore
+#
+#  ⚠️ 注意本项目的一个特殊之处：venv 直接建在了仓库根目录
+#     （见 pyvenv.cfg 与 bin/ include/ lib/ share/），
+#     所以必须显式忽略 venv 目录，否则会把整个虚拟环境提交上去。
+# ============================================================
+
+# ---- venv（建在项目根目录）----
+/bin/
+/include/
+/lib/
+/lib64
+/share/
+/pyvenv.cfg
+
+# ---- 密钥与本地配置 ----
+.env*
+!.env.example
+*.env
+*.pem
+*.key
+*.p12
+*.pfx
+credentials*.json
+secrets*.json
+secrets*.yaml
+secrets*.yml
+.ssh/
+.aws/
+
+# ---- 本地模型权重（体积大；用 utils/downloader.py 从 ModelScope 拉取）----
+/model/
+/models/
+*.safetensors
+*.pt
+*.pth
+*.onnx
+*.gguf
+*.bin
+
+# ---- 向量索引（由上传文档生成，可重建）----
+/knowledgebases/
+/data/
+*.faiss
+*.pkl
+
+# ---- 临时文件 ----
+/temp/
+/tmp/
+*.log
+logs/
+*.tmp
+*.bak
+*.swp
+*.swo
+/.publication/
+
+# Personal interview notes and legacy architecture drafts; originals remain local.
+/PROJECT_INTERVIEW_CONTEXT.md
+/docs/
+
+# ---- SQLite 元数据（首次运行自动建表，可重建）----
+/db_server/data/*.db
+*.db
+*.db-*
+*.sqlite*
+!/db_server/data/.gitkeep
+
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+env/
+.coverage
+htmlcov/
+coverage.xml
+test-results/
+dist/
+build/
+.ipynb_checkpoints/
+.obsidian/
+
+# ---- IDE / OS ----
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+desktop.ini

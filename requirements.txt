@@ -1,0 +1,34 @@
+﻿# Web 框架
+fastapi
+uvicorn[standard]
+pydantic
+python-multipart
+
+# 前端
+gradio
+
+# LangChain 生态
+langchain-classic
+langchain-community
+langchain-core
+langchain-huggingface
+langchain-openai
+langchain-text-splitters
+
+# 检索：向量库 + 稀疏检索 + 本地 Embedding
+faiss-cpu
+rank_bm25
+sentence-transformers
+jieba
+
+# 持久化
+sqlalchemy
+
+# 文档解析
+pymupdf
+python-docx
+pypdf          # PyPDFLoader 依赖(知识库上传 PDF 用)
+
+# 模型下载 / HTTP
+modelscope
+requests
